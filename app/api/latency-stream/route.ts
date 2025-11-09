@@ -33,7 +33,6 @@ async function getCachedPingdomProbes(): Promise<string[]> {
     if (fs.existsSync(CACHE_PATH)) {
       const cached = JSON.parse(fs.readFileSync(CACHE_PATH, "utf-8"));
       if (cached && Array.isArray(cached.locations)) {
-        console.log("✅ Using cached Pingdom probes");
         return cached.locations;
       }
     }
@@ -43,7 +42,6 @@ async function getCachedPingdomProbes(): Promise<string[]> {
 
   const token = process.env.PINGDOM_API_TOKEN;
   if (!token) {
-    console.warn("⚠️ Missing PINGDOM_API_TOKEN. Using fallback probes.");
     const fallback = ["US", "GB", "SG", "IN", "DE"];
     fs.writeFileSync(CACHE_PATH, JSON.stringify({ locations: fallback }));
     return fallback;
@@ -54,21 +52,22 @@ async function getCachedPingdomProbes(): Promise<string[]> {
       headers: { Authorization: `Bearer ${token}` },
       cache: "no-store",
     });
-    const json = await res.json();
+
+    const json = (await res.json()) as { probes: PingdomProbe[] };
+
     const activeProbes = json.probes
-      .filter((p: PingdomProbe) => p.active)
-      .map((p: PingdomProbe) => p.countryiso)
+      .filter((p) => p.active)
+      .map((p) => p.countryiso)
       .filter(Boolean);
-    const unique = Array.from(new Set(activeProbes));
+
+    const unique: string[] = Array.from(new Set(activeProbes));
 
     fs.writeFileSync(
       CACHE_PATH,
       JSON.stringify({ locations: unique }, null, 2)
     );
-    console.log("🧠 Cached new Pingdom probe data");
     return unique;
   } catch (err) {
-    console.error("🚨 Pingdom fetch failed:", err);
     return ["US", "GB", "SG", "IN", "DE"];
   }
 }
