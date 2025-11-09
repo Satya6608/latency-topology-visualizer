@@ -1,0 +1,222 @@
+[
+  {
+    "id": "binance",
+    "name": "Binance",
+    "provider": "AWS",
+    "approximate": true,
+    "region": "ap-northeast-1",
+    "lat": 35.6895,
+    "lng": 139.6917,
+    "azure_possible": false,
+    "notes": "Commonly reported to run in AWS Tokyo (ap-northeast-1) for many trading endpoints (community / latency analyses)."
+  },
+  {
+    "id": "bybit",
+    "name": "Bybit",
+    "provider": "AWS",
+    "approximate": false,
+    "region": "ap-southeast-1",
+    "lat": 1.3521,
+    "lng": 103.8198,
+    "azure_possible": false,
+    "notes": "Bybit FAQ explicitly references AWS Singapore as server location."
+  },
+  {
+    "id": "okx",
+    "name": "OKX",
+    "provider": "AWS",
+    "approximate": true,
+    "region": "ap-east-1",
+    "lat": 22.3193,
+    "lng": 114.1694,
+    "azure_possible": false,
+    "notes": "Public IP lookups and community sources indicate AWS hosting in Asia (ap-east-1 / Hong Kong) or multi-cloud connectivity."
+  },
+  {
+    "id": "deribit",
+    "name": "Deribit",
+    "provider": "Equinix",
+    "approximate": false,
+    "region": "LD4 (London/Slough)",
+    "lat": 51.5074,
+    "lng": -0.1278,
+    "azure_possible": false,
+    "notes": "Deribit documentation references Equinix LD4 (Slough/London) as a primary data center."
+  },
+  {
+    "id": "coinbase",
+    "name": "Coinbase",
+    "provider": "AWS",
+    "approximate": true,
+    "region": "us-east-1",
+    "lat": 37.4316,
+    "lng": -78.6569,
+    "azure_possible": false,
+    "notes": "Coinbase uses major colocation facilities and cloud providers (AWS widely used); regional coordinates are approximate."
+  },
+  {
+    "id": "kraken",
+    "name": "Kraken",
+    "provider": "AWS",
+    "approximate": true,
+    "region": "eu-central-1",
+    "lat": 50.1109,
+    "lng": 8.6821,
+    "azure_possible": false,
+    "notes": "Kraken is commonly represented as using European AWS regions (Frankfurt) for European services."
+  },
+  {
+    "id": "bitfinex",
+    "name": "Bitfinex",
+    "provider": "GCP",
+    "approximate": true,
+    "region": "europe-west2",
+    "lat": 51.5074,
+    "lng": -0.1278,
+    "azure_possible": false,
+    "notes": "Bitfinex has been reported to use GCP in certain regions; mapping is approximate."
+  },
+  {
+    "id": "kucoin",
+    "name": "KuCoin",
+    "provider": "Azure",
+    "approximate": true,
+    "region": "asia-southeast-1",
+    "lat": 1.3521,
+    "lng": 103.8198,
+    "azure_possible": false,
+    "notes": "KuCoin location info not public; Singapore is a practical approximation for APAC endpoints."
+  },
+  {
+    "id": "huobi",
+    "name": "Huobi",
+    "provider": "AWS",
+    "approximate": true,
+    "region": "asia-east",
+    "lat": 22.3193,
+    "lng": 114.1694,
+    "azure_possible": false,
+    "notes": "Huobi historically uses various APAC data centers (approximate)."
+  },
+  {
+    "id": "gateio",
+    "name": "Gate.io",
+    "provider": "Azure",
+    "approximate": true,
+    "region": "asia-east",
+    "lat": 25.033,
+    "lng": 121.5654,
+    "azure_possible": false,
+    "notes": "Gate.io public hosting details are not authoritative; Taipei/Singapore used as reasonable APAC approximations."
+  },
+  {
+    "id": "bitstamp",
+    "name": "Bitstamp",
+    "provider": "Equinix",
+    "approximate": true,
+    "region": "eu-west-1",
+    "lat": 52.52,
+    "lng": 13.405,
+    "azure_possible": false,
+    "notes": "Bitstamp historically uses European colocation / data centers; Frankfurt/Berlin/Amsterdam approximations."
+  },
+  {
+    "id": "gemini",
+    "name": "Gemini",
+    "provider": "AWS",
+    "approximate": true,
+    "region": "us-east-1",
+    "lat": 40.7128,
+    "lng": -74.006,
+    "azure_possible": false,
+    "notes": "Gemini likely uses US cloud providers and colocation for trading services; approximation: east coast US."
+  },
+  {
+    "id": "bittrex",
+    "name": "Bittrex",
+    "provider": "Azure",
+    "approximate": true,
+    "region": "us-west-2",
+    "lat": 47.6062,
+    "lng": -122.3321,
+    "azure_possible": false,
+    "notes": "Bittrex hosting not clearly published — US region approximation used."
+  },
+  {
+    "id": "poloniex",
+    "name": "Poloniex",
+    "provider": "Azure",
+    "approximate": true,
+    "region": "us-east-1",
+    "lat": 37.4316,
+    "lng": -78.6569,
+    "azure_possible": false,
+    "notes": "Poloniex hosting information not public; US-east used as a general approximation."
+  },
+  {
+    "id": "bitmex",
+    "name": "BitMEX",
+    "provider": "Equinix",
+    "approximate": true,
+    "region": "london/ld4",
+    "lat": 51.5074,
+    "lng": -0.1278,
+    "azure_possible": false,
+    "notes": "BitMEX historically colocated in London / datacentre hubs; approximate."
+  },
+  {
+    "id": "okcoin",
+    "name": "OKCoin",
+    "provider": "Azure",
+    "approximate": true,
+    "region": "us-west-2",
+    "lat": 37.7749,
+    "lng": -122.4194,
+    "azure_possible": false,
+    "notes": "OKCoin has global presence; US-west used as a practical approximation for some services."
+  },
+  {
+    "id": "coincheck",
+    "name": "Coincheck",
+    "provider": "Azure",
+    "approximate": true,
+    "region": "ap-northeast-1",
+    "lat": 35.6895,
+    "lng": 139.6917,
+    "azure_possible": false,
+    "notes": "Japan-based exchange — Tokyo region is a natural approximation."
+  },
+  {
+    "id": "mexc",
+    "name": "MEXC",
+    "provider": "Azure",
+    "approximate": true,
+    "region": "asia-southeast-1",
+    "lat": 1.3521,
+    "lng": 103.8198,
+    "azure_possible": false,
+    "notes": "MEXC operates APAC-facing endpoints; Singapore used as approximation."
+  },
+  {
+    "id": "liquid",
+    "name": "Liquid",
+    "provider": "Equinix",
+    "approximate": true,
+    "region": "asia-east",
+    "lat": 35.6895,
+    "lng": 139.6917,
+    "azure_possible": false,
+    "notes": "Liquid uses Tokyo and Singapore infrastructures historically."
+  },
+  {
+    "id": "bitrue",
+    "name": "Bitrue",
+    "provider": "Azure",
+    "approximate": true,
+    "region": "asia-southeast-1",
+    "lat": 1.3521,
+    "lng": 103.8198,
+    "azure_possible": false,
+    "notes": "Bitrue hosting not public; Singapore used as APAC approximation."
+  }
+]

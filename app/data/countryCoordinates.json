@@ -1,0 +1,12 @@
+{
+  "US": { "country": "United States", "lat": 37.0902, "lng": -95.7129 },
+  "GB": { "country": "United Kingdom", "lat": 55.3781, "lng": -3.436 },
+  "SG": { "country": "Singapore", "lat": 1.3521, "lng": 103.8198 },
+  "DE": { "country": "Germany", "lat": 51.1657, "lng": 10.4515 },
+  "JP": { "country": "Japan", "lat": 36.2048, "lng": 138.2529 },
+  "IN": { "country": "India", "lat": 20.5937, "lng": 78.9629 },
+  "AU": { "country": "Australia", "lat": -25.2744, "lng": 133.7751 },
+  "BR": { "country": "Brazil", "lat": -14.235, "lng": -51.9253 },
+  "FR": { "country": "France", "lat": 46.6034, "lng": 1.8883 },
+  "ZA": { "country": "South Africa", "lat": -30.5595, "lng": 22.9375 }
+}
