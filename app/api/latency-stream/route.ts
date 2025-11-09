@@ -21,29 +21,10 @@ function haversine(lat1: number, lon1: number, lat2: number, lon2: number) {
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
-const CACHE_PATH = path.join(process.cwd(), "app", "data", "pingdomCache.json");
-const HISTORY_DIR = path.join(process.cwd(), "app", "data", "history");
-
-function ensureDir(dir: string) {
-  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-}
-
 async function getCachedPingdomProbes(): Promise<string[]> {
-  try {
-    if (fs.existsSync(CACHE_PATH)) {
-      const cached = JSON.parse(fs.readFileSync(CACHE_PATH, "utf-8"));
-      if (cached && Array.isArray(cached.locations)) {
-        return cached.locations;
-      }
-    }
-  } catch (err) {
-    console.warn("⚠️ Failed to read Pingdom cache:", err);
-  }
-
   const token = process.env.PINGDOM_API_TOKEN;
   if (!token) {
     const fallback = ["US", "GB", "SG", "IN", "DE"];
-    fs.writeFileSync(CACHE_PATH, JSON.stringify({ locations: fallback }));
     return fallback;
   }
 
@@ -61,11 +42,6 @@ async function getCachedPingdomProbes(): Promise<string[]> {
       .filter(Boolean);
 
     const unique: string[] = Array.from(new Set(activeProbes));
-
-    fs.writeFileSync(
-      CACHE_PATH,
-      JSON.stringify({ locations: unique }, null, 2)
-    );
     return unique;
   } catch (err) {
     return ["US", "GB", "SG", "IN", "DE"];
@@ -108,12 +84,10 @@ async function fetchCloudflareLatency(
 
 export async function GET() {
   const encoder = new TextEncoder();
-  ensureDir(HISTORY_DIR);
-
   const stream = new ReadableStream({
     async start(controller) {
       const now = new Date().toISOString();
-      const dateFile = path.join(HISTORY_DIR, `${now.slice(0, 10)}.json`);
+
       const probes = await getCachedPingdomProbes();
 
       const promises = probes.map(async (code) => {
