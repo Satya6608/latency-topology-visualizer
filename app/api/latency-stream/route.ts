@@ -128,7 +128,7 @@ export async function GET() {
             distanceKm: haversine(coords.lat, coords.lng, ex.lat, ex.lng),
           }))
           .sort((a, b) => a.distanceKm - b.distanceKm)
-          .slice(0, 3);
+          .slice(0, 8);
 
         const data = {
           location: code,

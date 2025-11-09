@@ -9,11 +9,18 @@ import { ArcDatum, StreamData } from "../types/types";
 
 const Globe = dynamic(() => import("react-globe.gl"), { ssr: false });
 
+interface PointData {
+  lat: number;
+  lng: number;
+  name: string;
+  location: string;
+  provider: string;
+  type: string;
+}
 export default function GlobeLatency() {
   const globeRef = useRef<any>(null);
   const [arcs, setArcs] = useState<ArcDatum[]>([]);
   const [hoverArc, setHoverArc] = useState<ArcDatum | null>(null);
-  const [hoverPoint, setHoverPoint] = useState(null);
   const { theme } = useContext(ThemeContext);
 
   const getLatencyColor = (latency: number) => {
@@ -66,11 +73,9 @@ export default function GlobeLatency() {
           const idx = updated.findIndex((a) => a.id === arc.id);
 
           if (idx !== -1) {
-            // only update the changing fields
             updated[idx].latency = arc.latency;
             updated[idx].color = arc.color;
           } else {
-            // add if it’s a new connection
             updated.push(arc);
           }
         });
@@ -89,8 +94,6 @@ export default function GlobeLatency() {
 
   useEffect(() => {
     const es = connectToStream();
-
-    // Refresh every 5 seconds
     const interval = setInterval(() => {
       connectToStream();
     }, 5000);
@@ -150,20 +153,22 @@ export default function GlobeLatency() {
         globeImageUrl={globeImage}
         backgroundColor={backgroundImage || undefined}
         arcsData={arcs}
-        arcColor={(d: ArcDatum) => d.color}
+        arcColor={(d: any) => (d as ArcDatum).color as any}
         arcDashLength={1.25}
         arcDashGap={0.1}
         arcDashAnimateTime={5000}
         arcStroke={0.5}
         arcsTransitionDuration={2000}
-        onArcHover={setHoverArc}
+        onArcHover={(arc, prevArc) => setHoverArc(arc as ArcDatum | null)} // ✅ manual wrapper
         arcAltitudeAutoScale={0.4}
-        arcLabel={(d: ArcDatum) =>
-          `<b>${d.source} → ${d.target}</b><br/>Latency: ${d.latency.toFixed(
+        arcLabel={(d) =>
+          `<b>${(d as ArcDatum).source} → ${
+            (d as ArcDatum).target
+          }</b><br/>Latency: ${(d as ArcDatum).latency.toFixed(
             1
-          )} ms<br/><i>Server: ${d.targetProvider}</i> <br/>Distance: ${
-            d.distance
-          } km`
+          )} ms<br/><i>Server: ${
+            (d as ArcDatum).targetProvider
+          }</i> <br/>Distance: ${(d as ArcDatum).distance} km`
         }
         pointsData={arcs.flatMap((a) => [
           {
@@ -184,9 +189,10 @@ export default function GlobeLatency() {
           },
         ])}
         pointColor={(d) => {
-          if (!d.provider) return "#aaaaaa";
+          const data = d as PointData;
+          if (!data.provider) return "#aaaaaa";
 
-          const provider = d.provider.toUpperCase();
+          const provider = data.provider.toUpperCase();
 
           if (provider.includes("AWS")) return "#FF9900";
           if (provider.includes("AZURE")) return "#0078D4";
@@ -197,27 +203,25 @@ export default function GlobeLatency() {
         }}
         pointAltitude={0.002}
         pointRadius={0.75}
-        autoRotate
-        autoRotateSpeed={0.75}
         pointLabel={(d) => {
-          console.log(d);
+          const data = d as PointData;
           return `
-          <div style="
-            background: rgba(10, 15, 35, 0.9);
-            color: white;
-            padding: 6px 10px;
-            border-radius: 8px;
-            font-size: 13px;
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            box-shadow: 0 2px 8px rgba(0,0,0,0.4);
-            ">
-            <b style="color:#bdb2ff;">${d.name} ${
-            d.type ? `(${d.type})` : ""
+      <div style="
+        background: rgba(10, 15, 35, 0.9);
+        color: white;
+        padding: 6px 10px;
+        border-radius: 8px;
+        font-size: 13px;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+      ">
+        <b style="color:#bdb2ff;">${data.name} ${
+            data.type ? `(${data.type})` : ""
           }</b><br/>
-            ${d.name ? `${d.name}<br/>` : ""}
-            <span style="color:#76a9fa;">Provider: ${d.provider}</span>
-          </div>
-        `;
+        ${data.name ? `${data.name}<br/>` : ""}
+        <span style="color:#76a9fa;">Provider: ${data.provider}</span>
+      </div>
+    `;
         }}
       />
       <Tooltip />

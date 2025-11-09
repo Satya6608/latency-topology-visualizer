@@ -127,7 +127,7 @@ export default function HistoricalPage() {
 
   const options: ChartOptions<"line"> = useMemo(
     () => ({
-      animation: true,
+      animation: { duration: 400 },
       responsive: true,
       maintainAspectRatio: false,
       backgroundColor: chartBg,
@@ -184,7 +184,7 @@ export default function HistoricalPage() {
           bodyFont: { size: 12 },
           callbacks: {
             label: (context) => {
-              const y = context.parsed.y;
+              const y: any = context.parsed.y;
               return `Latency: ${y.toFixed(2)} ms`;
             },
           },
