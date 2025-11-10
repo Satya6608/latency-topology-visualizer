@@ -7,7 +7,7 @@ const Legend = () => {
         position: "absolute",
         top: "70px",
         left: "10px",
-        background: "rgba(0,0,0,0.7)",
+        background: "rgba(42, 42, 42, 0.7)",
         padding: "12px 16px",
         borderRadius: "10px",
         color: "#fff",
