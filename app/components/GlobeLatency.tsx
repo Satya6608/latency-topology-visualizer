@@ -4,8 +4,8 @@ import dynamic from "next/dynamic";
 import { useContext, useEffect, useRef, useState } from "react";
 import { ThemeContext } from "./Providers";
 import * as THREE from "three";
-import earthBG from "@/app/Assets/earthbg.png";
 import { ArcDatum, StreamData } from "../types/types";
+import { useArcStore } from "../store/useArcStore";
 
 const Globe = dynamic(() => import("react-globe.gl"), { ssr: false });
 
@@ -17,11 +17,19 @@ interface PointData {
   provider: string;
   type: string;
 }
+const allProviders = ["AWS", "Azure", "GCP", "Equinix"];
 export default function GlobeLatency() {
   const globeRef = useRef<any>(null);
-  const [arcs, setArcs] = useState<ArcDatum[]>([]);
   const [hoverArc, setHoverArc] = useState<ArcDatum | null>(null);
   const { theme } = useContext(ThemeContext);
+  const {
+    filteredArcs,
+    addOrUpdateArcs,
+    setMinMaxLatencyVisibility,
+    setFilters,
+    setAllProviders,
+    allRegions,
+  } = useArcStore();
 
   const getLatencyColor = (latency: number) => {
     if (latency < 30) return "#00FF99";
@@ -63,29 +71,10 @@ export default function GlobeLatency() {
           sourceLocation: chunk.location,
         };
       });
-
-      console.log(newArcs);
-
-      setArcs((prevArcs) => {
-        const updated = [...prevArcs];
-
-        newArcs.forEach((arc) => {
-          const idx = updated.findIndex((a) => a.id === arc.id);
-
-          if (idx !== -1) {
-            updated[idx].latency = arc.latency;
-            updated[idx].color = arc.color;
-          } else {
-            updated.push(arc);
-          }
-        });
-
-        return updated;
-      });
+      addOrUpdateArcs(newArcs);
     };
 
     es.addEventListener("end", () => {
-      console.log("✅ Stream complete");
       es.close();
     });
 
@@ -94,10 +83,17 @@ export default function GlobeLatency() {
 
   useEffect(() => {
     const es = connectToStream();
+    setFilters({
+      providers: allProviders,
+      region: allRegions.map((r) => r.value),
+      minLatency: null,
+      maxLatency: null,
+    });
+    setAllProviders(allProviders);
+    setMinMaxLatencyVisibility(true);
     const interval = setInterval(() => {
       connectToStream();
     }, 5000);
-
     return () => {
       es.close();
       clearInterval(interval);
@@ -152,7 +148,7 @@ export default function GlobeLatency() {
         ref={globeRef}
         globeImageUrl={globeImage}
         backgroundColor={backgroundImage || undefined}
-        arcsData={arcs}
+        arcsData={filteredArcs}
         arcColor={(d: any) => (d as ArcDatum).color as any}
         arcDashLength={1.25}
         arcDashGap={0.1}
@@ -170,7 +166,7 @@ export default function GlobeLatency() {
             (d as ArcDatum).targetProvider
           }</i> <br/>Distance: ${(d as ArcDatum).distance} km`
         }
-        pointsData={arcs.flatMap((a) => [
+        pointsData={filteredArcs.flatMap((a) => [
           {
             lat: a.startLat,
             lng: a.startLng,

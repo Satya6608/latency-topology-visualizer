@@ -91,6 +91,10 @@ body {
   .dark select {
     background: #000;
   }
+  .dark th {
+    background-color: #000;
+    color: #f3f3f3;
+  }
 }
 
 @layer base {

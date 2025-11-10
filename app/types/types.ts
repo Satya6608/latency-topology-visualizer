@@ -110,3 +110,25 @@ export interface LocationLatency {
   location: string;
   series: LatencySeriesPoint[];
 }
+
+export interface SeriesData {
+  p50: string[];
+}
+
+export interface HistoricalApiResponse {
+  result: Record<string, SeriesData>;
+}
+
+export interface ParsedSeriesPoint {
+  timestamp: number;
+  value: number;
+}
+
+export interface ParsedLocationSeries {
+  location: string;
+  series: ParsedSeriesPoint[];
+}
+export interface SeriesData {
+  timestamps: number[];
+  p50: string[];
+}

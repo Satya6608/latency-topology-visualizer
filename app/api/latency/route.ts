@@ -1,10 +1,7 @@
 import { NextResponse } from "next/server";
 import exchanges from "../../data/exchanges.json";
 import countryData from "../../data/countryCoordinates.json";
-import { log } from "console";
 import { LocationLatency, PingdomProbe } from "@/app/types/types";
-
-
 
 // Haversine distance in km
 function haversineDistance(
@@ -37,7 +34,6 @@ async function fetchPingdomProbes(): Promise<string[]> {
       cache: "no-store",
     });
     const json = await res.json();
-    console.log(json);
 
     if (!json.probes) return [];
     const activeProbes = json.probes.map((p: PingdomProbe) => p.countryiso);
@@ -85,7 +81,6 @@ async function fetchRadarLatency(
 export async function GET() {
   const now = new Date().toISOString();
   const locations = await fetchPingdomProbes();
-  console.log("Probes locations:", locations);
   const radarLatencyData = await fetchRadarLatency(locations);
 
   const enriched = locations.map((code) => {

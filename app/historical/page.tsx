@@ -15,8 +15,7 @@ import {
 } from "chart.js";
 import { ThemeContext } from "../components/Providers";
 import "chartjs-adapter-date-fns";
-
-import { useFilterStore } from "@/app/store/useFilterStore";
+import { useArcStore } from "@/app/store/useArcStore";
 
 ChartJS.register(
   CategoryScale,
@@ -31,70 +30,67 @@ ChartJS.register(
 type Point = { ts: number; latency: number };
 
 export default function HistoricalPage() {
-  const selectedExchanges = ["US"];
-  const [duration, setDuration] = useState<"1h" | "24h" | "7d">("24h");
+  const {
+    allRegions,
+    region,
+    setFilters,
+    setAllProviders,
+    setMinMaxLatencyVisibility,
+  } = useArcStore();
+  const [duration, setDuration] = useState<"1h" | "1d" | "1w">("1d");
   const [seriesMap, setSeriesMap] = useState<Record<string, Point[]>>({});
-  const [status, setStatus] = useState<string>("idle");
+  const [status, setStatus] = useState("idle");
   const esRef = useRef<EventSource | null>(null);
   const { theme } = useContext(ThemeContext);
 
   const locations = useMemo(
-    () => Array.from(new Set(selectedExchanges)).filter(Boolean),
-    [selectedExchanges]
+    () => (region?.length > 0 ? region : []),
+    [region, allRegions]
   );
 
   useEffect(() => {
-    // Close any existing stream
-    if (esRef.current) {
-      esRef.current.close();
-      esRef.current = null;
-    }
+    setFilters({
+      providers: [],
+      region: allRegions.map((r) => r.value),
+      minLatency: null,
+      maxLatency: null,
+    });
+    setMinMaxLatencyVisibility(false);
+    setAllProviders([]);
+  }, []);
+  useEffect(() => {
+    if (esRef.current) esRef.current.close();
 
-    // Build URL
     const params = new URLSearchParams();
     params.set("duration", duration);
     params.set("locations", locations.join(","));
-
     const url = `/api/historical?${params.toString()}`;
-    setStatus("connecting");
 
     const es = new EventSource(url);
     esRef.current = es;
+    setStatus("connecting");
+    setSeriesMap({});
 
-    es.onopen = () => {
-      setStatus("connected");
-    };
-
+    es.onopen = () => setStatus("connected");
     es.onmessage = (e) => {
       try {
         const payload = JSON.parse(e.data);
         if (payload.type === "location" && payload.series) {
-          setSeriesMap((prev) => {
-            const next = { ...prev };
-            next[payload.location] = payload.series;
-            return next;
-          });
-        } else if (payload.type === "info") {
-          setStatus(payload.message || "info");
-        } else if (payload.type === "error") {
-          console.error("stream error", payload);
-        } else if (payload.type === "end") {
-          setStatus("done");
+          setSeriesMap((prev) => ({
+            ...prev,
+            [payload.location]: payload.series,
+          }));
         }
       } catch (err) {
-        console.error("Invalid SSE payload:", e.data);
+        console.error("Invalid SSE:", e.data);
       }
     };
-
-    es.onerror = (ev) => {
-      console.error("EventSource error", ev);
+    es.onerror = () => {
       setStatus("error");
       es.close();
     };
 
-    return () => {
-      es.close();
-    };
+    return () => es.close();
   }, [duration, locations.join(",")]);
 
   const chartData = useMemo(() => {
@@ -102,75 +98,49 @@ export default function HistoricalPage() {
       label: loc,
       data: pts.map((p) => ({ x: p.ts, y: p.latency })),
       borderWidth: 2,
-      tension: 0.2,
+      tension: 0.25,
       borderColor: paletteForIndex(idx),
       backgroundColor: "transparent",
       pointRadius: 0,
     }));
-
-    return {
-      datasets,
-    };
+    return { datasets };
   }, [seriesMap]);
 
-  ("use client");
-
   const isDark = theme === "dark";
-
   const gridColor = isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.05)";
   const tickColor = isDark ? "#d1d5db" : "#374151";
-  const axisTitleColor = isDark ? "#9ca3af" : "#4b5563";
-  const legendLabelColor = isDark ? "#e5e7eb" : "#3e3e3eff";
+  const legendLabelColor = isDark ? "#e5e7eb" : "#111";
   const tooltipBg = isDark ? "rgba(15,15,15,0.9)" : "rgba(255,255,255,0.95)";
   const tooltipText = isDark ? "#f3f4f6" : "#111827";
-  const chartBg = isDark ? "#030303ff" : "#ffffff";
 
   const options: ChartOptions<"line"> = useMemo(
     () => ({
-      animation: { duration: 400 },
       responsive: true,
       maintainAspectRatio: false,
-      backgroundColor: chartBg,
+      animation: { duration: 400 },
       scales: {
         x: {
           type: "time",
           time: {
-            tooltipFormat: "PPpp",
             unit: duration === "1h" ? "minute" : "hour",
           },
-          ticks: {
-            color: tickColor,
-            font: { size: 11 },
-          },
-          grid: {
-            color: gridColor,
-            drawBorder: false,
-          },
+          ticks: { color: tickColor, font: { size: 11 } },
+          grid: { color: gridColor, drawBorder: false },
         },
         y: {
           title: {
             display: true,
             text: "Latency (ms)",
-            color: axisTitleColor,
+            color: tickColor,
             font: { size: 12 },
           },
-          ticks: {
-            color: tickColor,
-            font: { size: 11 },
-          },
-          grid: {
-            color: gridColor,
-            drawBorder: false,
-          },
+          ticks: { color: tickColor },
+          grid: { color: gridColor, drawBorder: false },
         },
       },
       plugins: {
         legend: {
-          labels: {
-            color: legendLabelColor,
-            font: { size: 12, family: "Inter, sans-serif" },
-            boxWidth: 12,
-          },
+          labels: { color: legendLabelColor, boxWidth: 12 },
         },
         tooltip: {
           backgroundColor: tooltipBg,
@@ -179,15 +149,6 @@ export default function HistoricalPage() {
           borderWidth: 1,
           borderColor: isDark ? "#222" : "#e5e7eb",
           displayColors: false,
-          padding: 10,
-          titleFont: { size: 13, family: "Inter, sans-serif" },
-          bodyFont: { size: 12 },
-          callbacks: {
-            label: (context) => {
-              const y: any = context.parsed.y;
-              return `Latency: ${y.toFixed(2)} ms`;
-            },
-          },
         },
       },
     }),
@@ -195,40 +156,46 @@ export default function HistoricalPage() {
   );
 
   return (
-    <div className="p-6">
-      <div className="flex items-center justify-between mb-4">
+    <div className="p-4 sm:p-6 space-y-6">
+      {/* Header + Duration Selector */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <h2 className="text-2xl font-bold">Historical Latency</h2>
-        <div className="flex items-center gap-2">
-          <div className="bg-gray-800 rounded-md p-1 flex gap-1">
+        <div className="flex gap-1 bg-gray-100 dark:bg-gray-800 rounded-lg p-1 w-fit">
+          {["1h", "1d", "1w"].map((d) => (
             <button
-              onClick={() => setDuration("1h")}
-              className={`px-3 py-1 rounded ${
-                duration === "1h" ? "bg-green-600 text-white" : "text-gray-300"
+              key={d}
+              onClick={() => setDuration(d as any)}
+              className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
+                duration === d
+                  ? "bg-green-600 text-white"
+                  : "text-gray-500 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700"
               }`}
             >
-              1H
+              {d.toUpperCase()}
             </button>
-            <button
-              onClick={() => setDuration("24h")}
-              className={`px-3 py-1 rounded ${
-                duration === "24h" ? "bg-green-600 text-white" : "text-gray-300"
-              }`}
-            >
-              24H
-            </button>
-            <button
-              onClick={() => setDuration("7d")}
-              className={`px-3 py-1 rounded ${
-                duration === "7d" ? "bg-green-600 text-white" : "text-gray-300"
-              }`}
-            >
-              7D
-            </button>
-          </div>
+          ))}
         </div>
       </div>
 
-      <div className="grid grid-cols-4 gap-4 mb-4">
+      {/* Region Selector Summary */}
+      <div className="flex flex-wrap gap-2 text-sm text-gray-500 dark:text-gray-400">
+        <span className="font-medium">Regions:</span>
+        {region.length ? (
+          region.map((loc, i) => (
+            <span
+              key={i}
+              className="px-2 py-1 rounded-md border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-900"
+            >
+              {loc}
+            </span>
+          ))
+        ) : (
+          <span className="italic text-gray-400">(none selected)</span>
+        )}
+      </div>
+
+      {/* Stat Cards */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <StatCard
           title="Current Latency"
           value={computeCurrent(seriesMap)}
@@ -251,25 +218,28 @@ export default function HistoricalPage() {
         />
       </div>
 
-      <div className="border border-gray-800 rounded-md p-4 h-[460px]">
+      {/* Chart */}
+      <div className="border border-gray-200 dark:border-gray-800 rounded-lg p-3 sm:p-4 bg-white dark:bg-black h-[400px] sm:h-[460px]">
         <Line data={chartData} options={options} />
       </div>
 
-      <div className="mt-3 text-sm text-gray-400">
-        Stream status: {status}. Locations: {locations.join(", ") || "(none)"}
+      <div className="text-xs text-gray-500 dark:text-gray-400">
+        Status: {status} — Showing {locations.length || "no"} region
+        {locations.length > 1 ? "s" : ""}
       </div>
     </div>
   );
 }
 
-export function StatCard({
+/* --- Subcomponents --- */
+function StatCard({
   title,
   value,
   accent,
 }: {
   title: string;
   value: string | number;
-  accent?: "green" | "blue" | "red" | "yellow";
+  accent: "green" | "blue" | "red" | "yellow";
 }) {
   const accentMap: Record<string, string> = {
     green: "text-green-600 dark:text-green-400",
@@ -277,37 +247,28 @@ export function StatCard({
     red: "text-red-600 dark:text-red-400",
     yellow: "text-yellow-600 dark:text-yellow-400",
   };
-
   return (
-    <div className="col-span-1 p-4 rounded-md border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-[#0e0e0e] transition-colors duration-300">
+    <div className="p-4 rounded-lg border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-[#0f0f0f]">
       <div className="text-sm text-gray-500 dark:text-gray-300">{title}</div>
-      <div
-        className={`text-2xl font-semibold ${accent ? accentMap[accent] : ""}`}
-      >
-        {value}
-      </div>
+      <div className={`text-2xl font-bold ${accentMap[accent]}`}>{value}</div>
     </div>
   );
 }
 
+/* --- Helper Functions --- */
 function computeCurrent(map: Record<string, Point[]>) {
   let latest: Point | null = null;
   for (const pts of Object.values(map)) {
     const p = pts[pts.length - 1];
-    if (!p) continue;
-    if (!latest || p.ts > latest.ts) latest = p;
+    if (p && (!latest || p.ts > latest.ts)) latest = p;
   }
-  return latest ? `${latest.latency} ms` : "-";
+  return latest ? `${latest.latency.toFixed(2)} ms` : "-";
 }
 function computeAverage(map: Record<string, Point[]>) {
   let sum = 0,
     count = 0;
-  for (const pts of Object.values(map)) {
-    for (const p of pts) {
-      sum += p.latency;
-      count++;
-    }
-  }
+  for (const pts of Object.values(map))
+    for (const p of pts) (sum += p.latency), count++;
   return count ? `${Math.round(sum / count)} ms` : "-";
 }
 function computeMax(map: Record<string, Point[]>) {
@@ -322,7 +283,6 @@ function computeMin(map: Record<string, Point[]>) {
     for (const p of pts) mn = Math.min(mn, p.latency);
   return isFinite(mn) ? `${mn} ms` : "-";
 }
-
 function paletteForIndex(i: number) {
   const colors = [
     "#7CFC00",
