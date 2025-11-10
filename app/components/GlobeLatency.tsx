@@ -6,6 +6,7 @@ import { ThemeContext } from "./Providers";
 import * as THREE from "three";
 import { ArcDatum, StreamData } from "../types/types";
 import { useArcStore } from "../store/useArcStore";
+import Legend from "./legend";
 
 const Globe = dynamic(() => import("react-globe.gl"), { ssr: false });
 
@@ -221,6 +222,7 @@ export default function GlobeLatency() {
         }}
       />
       <Tooltip />
+      <Legend />
     </div>
   );
 }

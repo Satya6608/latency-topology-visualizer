@@ -156,15 +156,10 @@ export const useArcStore = create<ArcStore>((set, get) => ({
     }
 
     if (region && region.length > 0) {
-      filtered = filtered.filter((a) =>
-        region.some(
-          (r) =>
-            a.sourceLocation?.toLowerCase().includes(r.toLowerCase()) ||
-            a.targetLocation?.toLowerCase().includes(r.toLowerCase())
-        )
-      );
+      filtered =
+        filtered.filter((a) => region.includes(a.sourceLocation)) ||
+        filtered.filter((a) => region.includes(a.targetLocation));
     }
-
     if (minLatency != null)
       filtered = filtered.filter((a) => a.latency >= minLatency);
     if (maxLatency != null)
@@ -186,5 +181,5 @@ export const useArcStore = create<ArcStore>((set, get) => ({
   },
   setMinMaxLatencyVisibility: (show) => {
     set({ showMinMaxLatency: show });
-  }
+  },
 }));
