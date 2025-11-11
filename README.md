@@ -5,6 +5,8 @@ A **Next.js 16 + TypeScript** application that visualizes **real-time and histor
 Built for the **GoQuant recruitment assignment**, this project showcases skills in full-stack development, real-time visualization, WebGL rendering, and performance optimization.
 
 ---
+## 🔗 Live demo
+Try the live app: **https://latency-topology-visualizer-pi.vercel.app**
 
 ## 🚀 Features
 
